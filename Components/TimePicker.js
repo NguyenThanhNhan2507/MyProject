@@ -7,14 +7,17 @@ import {formatISO9075} from 'date-fns'
 
 
 const TimePicker = ({dateAndTime, setInformation, information}) => {
+    const [datetime, setDatetime] = useState(new Date(Date.now()))
     const [status, setStatus] = useState('date')
     const [show, setShow] = useState(false)
     const onChangeValue = (event,choosedDateandTime) => {
-        const presentDateTime = choosedDateandTime || dateAndTime
+        const presentDateTime = choosedDateandTime || datetime
         if(Platform.OS === "android"){
             setShow(false)
         }
-        setInformation({...information,dateAndTime:presentDateTime})
+        setDatetime(presentDateTime)
+        const timeDate = new Date(presentDateTime)
+        setInformation({...information,dateAndTime:timeDate.toLocaleString()})
     }
     const setTimeAndDateStatus = (status) => {
         setShow(true)
@@ -28,7 +31,7 @@ const TimePicker = ({dateAndTime, setInformation, information}) => {
     }
     return (
         <View style={style.DateTimeForm}>
-            <Text style={style.TextTime}>{dateAndTime && formatISO9075(dateAndTime)}</Text>
+            <Text style={style.TextTime}>{dateAndTime ? dateAndTime:'YYYY-MM-DD HH-MM-SS'}</Text>
             <View style={style.ViewTime}>
                 <IconTime name={'calendar-outline'} size={20} color={'black'} onPress={showDate}/>
                 <IconTime name={'timer-outline'} size={20} color={'black'} onPress={showTime}/>
@@ -37,12 +40,11 @@ const TimePicker = ({dateAndTime, setInformation, information}) => {
                 show && (
                     <DateTimePicker
                         testID="dateTimePicker"
-                        value={information.dateAndTime}
+                        value={datetime}
                         mode={status}
                         is24Hour={true}
                         display="default"
                         onChange={onChangeValue}
-
                     />
                 )
             }

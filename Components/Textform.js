@@ -1,29 +1,89 @@
 import React, {useState} from 'react'
-import {  Text,TextInput, View,StyleSheet, ScrollView, TouchableOpacity, ImageBackground } from 'react-native';
+import {  Text,TextInput, View,StyleSheet, ScrollView, TouchableOpacity, Alert, } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import  IconRoom  from 'react-native-vector-icons/Ionicons';
 import TimePicker from './TimePicker';
+import * as SQLite from 'expo-sqlite'
+// biến database
+const db= SQLite.openDatabase('database','1.0')
+// biến TextForm
+const TextForm = ({navigation, setShow, setStatus}) => {
 
-const TextForm = () => {
     const [information,setInformation] = useState({
         properTypes: '',
-        choiceRoom: '',
-        dateAndTime: new Date(Date.now()),
-        priceOfMonthly: '',
-        furnitureType:'',
+        choiceRoom:null,
+        dateAndTime: null,
+        priceOfMonthly:null,
+        furnitureType:null,
         note:'',
         report:'',
-        updatedIF: new Date(Date.now()).toISOString(),
       })
-    console.log(information)
+// biến timeChanges
+    const [timechanges, settimechanges] = useState()
     const onChange =(input)=>(value)=>{
         setInformation({...information,[input]:value})
     }
-    const placeholder={
-        label:'Please choice any room...',
-        value:null
+// biến stylefieldcolor
+    const [stylefieldcolor, setstylefieldcolor] =useState('black')
+// biến placeholder
+    const placeholder=(form)=> {
+        const Placeholder = {
+            label:`Choice any ${form}`,
+            value: null
+        }
+        return Placeholder
     }
-    
+// biến insertDB
+    const insertDB = async(valueDB)=>{
+        const{properTypes,choiceRoom,dateAndTime,priceOfMonthly,furnitureType,note,report} = valueDB
+            await db.transaction((tx)=>{
+                tx.executeSql(
+                    `INSERT INTO mobieapp(
+                        propertypes,
+                        bedroom,
+                        createAt,
+                        monthlyprice,
+                        furnituretype,
+                        note,
+                        report
+                      )
+                      VALUES (
+                        ?,?,?,?,?,?,?
+                      )`,
+                      [properTypes,choiceRoom,dateAndTime,priceOfMonthly,furnitureType,note,report],
+                      (tx,result)=>{
+                        console.log('insertDB successfully!');
+                        console.log(result);
+                    }
+                )
+            })
+    }
+// biến submit
+    const submmit = (giatri) => {
+        if(!giatri) return
+        if(giatri.properTypes ==="" || giatri.report ===""){
+            setShow(true)
+            setStatus('error')
+        }else if(giatri.choiceRoom === null ||  giatri.priceOfMonthly ===null || giatri.dateAndTime ===null){
+            setShow(true)
+            setStatus('error')
+        }
+        else{
+            setShow(true)
+            setStatus('')
+            insertDB(giatri)
+            setInformation({
+                properTypes: '',
+                choiceRoom:null,
+                dateAndTime: null,
+                priceOfMonthly:null,
+                furnitureType:null,
+                note:'',
+                report:'',
+              })
+        }
+    }
+ // thẻ view
     return (
     <View style={styles.wrapperForm} >
         <ScrollView contentContainerStyle={styles.Rolling}>
@@ -37,9 +97,10 @@ const TextForm = () => {
         <Text style={styles.SeenView}>BedRooms</Text>
         <RNPickerSelect
             useNativeAndroidPickerStyle={false}
-            placeholder = {placeholder}
+            placeholder = {placeholder('Bedrooms')}
             style={stylesForms}
-            onValueChange={(values) => setInformation({...information,choiceRoom:values})}
+            value={information.choiceRoom}
+            onValueChange={(value) => setInformation({...information,choiceRoom:value})}
             items={[
                 { label: 'Studio', value: 'Studio' },
                 { label: '1', value: '1' },
@@ -55,9 +116,13 @@ const TextForm = () => {
             }}
         />
         <Text style={styles.SeenView}>DateTime</Text>
-        <TimePicker dateAndTime={information.dateAndTime} setInformation={setInformation} information={information}/>
+        <TimePicker 
+        timechanges = {timechanges}
+        settimechanges = {settimechanges}
+        dateAndTime={information.dateAndTime} setInformation={setInformation} information={information}/>
         <Text style={styles.SeenView}>Monthly Rent Price</Text>
         <TextInput
+        keyboardType='numeric'
         placeholder= "Please enter monthly rental price"
         style={styles.textIputs} 
         name="priceOfMonthly" 
@@ -66,9 +131,10 @@ const TextForm = () => {
         <Text style={styles.SeenView}>Furniture Types</Text>
         <RNPickerSelect
             useNativeAndroidPickerStyle={false}
-            placeholder = {placeholder}
+            value={information.furnitureType}
+            placeholder = {placeholder('Furniture Types')}
             style={stylesForms}
-            onValueChange={(values) => setInformation({...information,furnitureType:values})}
+            onValueChange={(value) => setInformation({...information,furnitureType:value})}
             items={[
                 { label: 'Furnished', value: 'Furnished' },
                 { label: 'Unfurnished', value: 'Unfurnished' },
@@ -101,7 +167,10 @@ const TextForm = () => {
         </View>
         </ScrollView>
         <View style={styles.SeenView2}>
-            <TouchableOpacity style={styles.PressButtion}>
+            <TouchableOpacity 
+            style={styles.PressButtion}
+            onPress={()=>submmit(information)}
+            >
                     <Text style={styles.Text2}>Submit</Text>
             </TouchableOpacity>
         </View>
@@ -109,6 +178,7 @@ const TextForm = () => {
     
     )
 }
+// stylesheet
 const styles = StyleSheet.create({
     wrapperForm:{
         display: 'flex',
@@ -121,7 +191,7 @@ const styles = StyleSheet.create({
         width:280, 
         borderRadius:2,
         padding:10,
-        borderColor:'#000000', 
+        borderColor:'black', 
         borderStyle:'solid', 
         borderWidth:1, 
         marginTop:8,
