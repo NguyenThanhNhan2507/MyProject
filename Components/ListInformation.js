@@ -3,16 +3,20 @@ import { StyleSheet, Text, View, FlatList } from 'react-native';
 import {useIsFocused} from '@react-navigation/native'
 import * as SQLite from 'expo-sqlite'
 import  Icon  from 'react-native-vector-icons/Ionicons';
+import EditModal from './Pop up/EditModal';
 const db= SQLite.openDatabase('database','1.0')
 export default function ListInformation() {
-// biến loading để delete
-  const[loading, setLoading] = useState(false)
-  const deleteData = async(id)=>{
+// biến TableSQL để delete
+  const[TableSQL, setTableSQL] = useState(false)
+  const[idEdit, setIdEdit] = useState()
+  const[visible, setVisible] = useState(false)
+  console.log(idEdit)
+  const DeleteTable = async(id)=>{
     await db.transaction((tx)=>{
       tx.executeSql("DELETE FROM mobieapp WHERE idData = ?",
       [id],
       (tx,result)=>{
-        setLoading(true)
+        setTableSQL(true)
       },
       (error)=>{
         console.log('Cannot delete')
@@ -20,85 +24,92 @@ export default function ListInformation() {
       )
     })
   }
+  const edit = (id)=>{
+    setIdEdit(id)
+    setVisible(true)
+  }
   // biến gọi database
   const isFocused = useIsFocused()
   // biến show database
-  const [dataobj, setDataobj] = useState([
+  const [ShowData, setShowData] = useState([
   ])
-  console.log(dataobj)
-  // biến getdata để select
-  const getData = async()=> {
+  console.log(ShowData)
+  // biến TakeData để select
+  const TakeData = async()=> {
         await db.transaction((tx)=>{
           tx.executeSql("SELECT * FROM mobieapp",
           [],
           (tx,result)=>{
+            console.log(result.rows)
             let Datalist = []
             const len = result.rows.length
             if(len>0){
               for(let i=0;i<len;++i){
                 Datalist.push(result.rows.item(i))
-                setDataobj(Datalist)
+                setShowData(Datalist)
               }
             }else{
-              setDataobj([])
+              setShowData([])
             }
           }
           )
         })
   }
   useEffect(()=>{
-    getData()
-    if(loading){
+    TakeData()
+    if(TableSQL){
       setTimeout(()=>{
-        setLoading(false)
+        setTableSQL(false)
       },1000)
     }
-  },[isFocused, loading])
+  },[isFocused, TableSQL])
 
   return (
     // thẻ View
-    <View style={styles.container}>
-        <Text style={styles.Header}>List</Text>
-        {dataobj.length===0?(
+    <View style={styles.Header}>
+      <EditModal idEdit={idEdit} visible={visible} setVisible={setVisible}/>
+        <Text style={styles.Boder}>List</Text>
+        {ShowData.length===0?(
         <View style={{flex:1 ,alignItems: 'center'}}>
-          <Text>Dữ liệu Không Có</Text>
+          <Text>No any data</Text>
         </View>):(
-          <FlatList data={dataobj} keyExtractor={i=>i.idData.toString()} contentContainerStyle={{padding:15,}} renderItem={({item})=>(
-            <View style={{marginBottom:18,flexDirection:'row', backgroundColor:'#fff', borderRadius:16, width:280}}>
+          <FlatList data={ShowData} keyExtractor={i=>i.idData.toString()} contentContainerStyle={{padding:15,}} renderItem={({item})=>(
+            <View style={{marginBottom:18,flexDirection:'row', backgroundColor:'#333333', borderRadius:16, width:280}}>
               <View style={{padding:10, flex:1, }}>
   
                   <View style={{flexDirection:'row', alignItems:'flex-start'}}>
-                  <Text>Name:</Text>
-                  <Text style={{marginLeft:5,}}>{item.report}</Text>
+                  <Text style={{color:'#fff'}}>Name:</Text>
+                  <Text style={{marginLeft:5,color:'#fff'}}>{item.report}</Text>
                   </View>
   
                   <View style={{flexDirection:'row', alignItems:'flex-start'}}>
-                  <Text>Property Types:</Text>
-                  <Text style={{marginLeft:5,}}>{item.propertypes}</Text>
+                  <Text style={{color:'#fff'}}>Property Types:</Text>
+                  <Text style={{marginLeft:5,color:'#fff'}}>{item.propertypes}</Text>
                   </View>
   
                   <View style={{flexDirection:'row', alignItems:'flex-start'}}>
-                  <Text>BedRooms:</Text>
-                  <Text style={{marginLeft:5,}}>{item.bedroom}</Text>
+                  <Text style={{color:'#fff'}}>BedRooms:</Text>
+                  <Text style={{marginLeft:5,color:'#fff'}}>{item.bedroom}</Text>
                   </View>
   
                   <View style={{flexDirection:'row', alignItems:'flex-start'}}>
-                  <Text>DateTime:</Text>
-                  <Text style={{marginLeft:5,}}>{item.createAt}</Text>
+                  <Text style={{color:'#fff'}}>DateTime:</Text>
+                  <Text style={{marginLeft:5,color:'#fff'}}>{item.createAt}</Text>
                   </View>
   
                   <View style={{flexDirection:'row', alignItems:'flex-start'}}>
-                  <Text>Monthly Rent Price:</Text>
-                  <Text style={{marginLeft:5,}}>{item.monthlyprice}</Text>
+                  <Text style={{color:'#fff'}}>Monthly Rent Price:</Text>
+                  <Text style={{marginLeft:5,color:'#fff'}}>{item.monthlyprice}</Text>
                   </View>
   
                   <View style={{flexDirection:'row', alignItems:'flex-start'}}>
-                  <Text>Furniture Types:</Text>
-                  <Text style={{marginLeft:5,}}>{item.furnituretype}</Text>
+                  <Text style={{color:'#fff'}}>Furniture Types:</Text>
+                  <Text style={{marginLeft:5,color:'#fff'}}>{item.furnituretype}</Text>
                   </View>
                 </View>
-                <View style={{marginTop:8,}}>
-                  <Icon name='close-outline' color='red' size={25} onPress={()=>deleteData(item.idData)} />
+                <View style={{marginTop:8,display:'flex',flexDirection:'row',padding:5}}>
+                <Icon name='pencil' color='green' style={{marginTop:2}} size={18} onPress={()=>edit(item.idData)} />
+                  <Icon name='close-outline' color='red' size={25} onPress={()=>DeleteTable(item.idData)} />
                 </View>
               </View>
           )}/>
@@ -109,12 +120,12 @@ export default function ListInformation() {
 }
 //Stylesheet
 const styles = StyleSheet.create({
-  container: {
+  Header: {
     flex: 1,
     backgroundColor: '#fff',
     alignItems: 'center',
   },
-  Header: {
+  Boder: {
     flex: 1,
     marginTop: 15,
     fontSize: 30,

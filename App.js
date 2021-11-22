@@ -11,7 +11,7 @@ import * as Font from 'expo-font'
 import AppLoading  from 'expo-app-loading'
 import * as SQLite from 'expo-sqlite'
 import { createStackNavigator } from '@react-navigation/stack'
-import Textform from './Components/Textform'
+
 
 
 const db= SQLite.openDatabase('database','1.0')
@@ -53,6 +53,24 @@ const TableDB = async() => {
           note TEXT,
           report TEXT
       )`,
+      )
+      tx.executeSql(
+        `
+        CREATE UNIQUE INDEX rental_Index ON mobieapp
+        (
+          propertypes,
+          bedroom,
+          monthlyprice,
+          furnituretype,
+          report
+        )
+        `,
+        (tx,result)=>{
+          console.log("create index successfully")
+        },
+        (error)=>{
+          console.log(error,"Error create index ")
+        }
       )
       console.log('Connect db successfully!')
     })

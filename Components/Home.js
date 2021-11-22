@@ -6,28 +6,28 @@ import ModelSuccess from './Pop up/ModelSuccess';
 
 
 export default function Home({navigation}) {
-// biến show model
+// biến display model
   const [show, setShow] = useState(false)
   const[status, setStatus] = useState('')
 //container
   return (
-    <View style={styles.container}>
-      <Text style={styles.Header}>RentalZ!</Text>
+    <View style={styles.Header}>
+      <Text style={styles.Border}>HOME</Text>
       <Textform navigation={navigation} setShow={setShow} setStatus={setStatus} />
-      {status=== 'error'?(<ModelError name="alert-circle" show={show} setShow={setShow}/>):(<ModelSuccess show={show} setShow={setShow}/>)}
+      {status=== 'error' || status === "errorDup"?(<ModelError status={status} name="alert-circle" show={show} setShow={setShow}/>):(<ModelSuccess show={show} setShow={setShow}/>)}
     </View>
-
   );
 }
 //Styheet
 const styles = StyleSheet.create({
-  container: {
+  Header: {
     flex: 1,
     backgroundColor: '#fff',
     alignItems: 'center',
   },
-  Header: {
-    marginTop: 15,
+  Border: {
+    marginTop: 45,
+    marginBottom:10,
     fontSize: 30,
     fontWeight: '400',
     fontFamily: 'Amita-Regular'

@@ -1,12 +1,40 @@
 import React, { useState } from 'react'
-import {View, Text, Modal, StyleSheet, TouchableOpacity} from 'react-native'
+import {View, Text, Modal, StyleSheet, TouchableOpacity, TextInput, Alert} from 'react-native'
 import  Icon  from 'react-native-vector-icons/Ionicons'
-const ModelError = ({name, show, setShow,status}) => {
+import * as SQLite from 'expo-sqlite'
+const db= SQLite.openDatabase('database','1.0')
+const EditModal = ({idEdit,visible,setVisible}) => {
     const Closemode = ()=>{
-        setShow(false)
+        setVisible(false)
     }
+    const EditNoteColumn = async(id)=>{
+        await db.transaction((tx)=>{
+          tx.executeSql("UPDATE mobieapp SET note=? WHERE idData=?",
+          [editValue,id],
+          (tx,result)=>{
+           console.log("edit ok")
+           setVisible(false)
+           Alert.alert(
+               'Edit Note',
+               'You edited note successfully',
+               [
+                   {
+                       text:'OK',
+                       onPress:()=>{console.log('')}
+                    
+                   }
+               ]
+           )
+          },
+          (error)=>{
+            console.log('Cannot edit')
+          }
+          )
+        })
+      }
+    const [editValue,setEditValue] = useState('')
     return (
-      <Modal transparent visible={show}>
+      <Modal transparent visible={visible}>
           <View style={styles.modelForm}>
               <View style={styles.Boxder}>
                 <View style={{alignItems:'flex-end'}}>
@@ -15,18 +43,22 @@ const ModelError = ({name, show, setShow,status}) => {
                     </View>
                 </View>
                 <View style={{alignItems:'center'}}>
-                    <Icon style={styles.iconerror} name={name} size={90} color="#CF000F" />
+                    <Text style={styles.header}>Edit Note</Text>
                 </View>
                 <View style={{alignItems:'center'}}>
-                    <Text style={styles.content}>{
-                        status="errorDup"?
-                        `The record you have just created is existed in the database.`
-                        :`You can check again, please. Are you sure everything is fine? You should fill out all the fields.`
-                    }</Text>
+                    <TextInput
+                    value={editValue}
+                    onChangeText={(text)=>setEditValue(text)}
+                    style={styles.input}
+                    textAlignVertical="top"
+                    multiline
+                    numberOfLines={6}
+                    placeholder="Write note in here"
+                    />
                 </View>
                 <View style={{alignItems:'center'}}>
-                    <TouchableOpacity style={styles.btn} onPress={Closemode}>
-                        <Text style={styles.textbtn}>OK</Text>
+                    <TouchableOpacity style={styles.btn} onPress={()=>EditNoteColumn(idEdit)}>
+                        <Text style={styles.textbtn}>EDIT</Text>
                     </TouchableOpacity>
                 </View>
                </View>
@@ -49,6 +81,18 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
 
     },
+    header:{
+        fontSize:25,
+        marginBottom:15
+    },
+    input:{
+       height:130,
+       width:"100%",
+       borderWidth:1,
+       borderRadius:5,
+       padding:8,
+       borderColor:'#454545'
+    },
     Headers:{
         width: '100%',
         alignItems: 'flex-end',
@@ -69,7 +113,7 @@ const styles = StyleSheet.create({
     btn:{
         width:'100%',
         height: 45,
-        backgroundColor: '#CF000F',
+        backgroundColor: '#34eb34',
         borderRadius: 5,
         elevation:7,
         shadowColor: '#fff',
@@ -96,4 +140,4 @@ const styles = StyleSheet.create({
         textAlign:'center',
     }
 }) 
-export default ModelError
+export default EditModal

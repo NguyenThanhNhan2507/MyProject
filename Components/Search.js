@@ -10,16 +10,24 @@ export default function Search() {
   const [data, setData] = useState([])
   const [datafind, setDatafind] = useState([])
   const isFocused = useIsFocused()
-  const navigation = useNavigation()
-  const onfind = (value)=>{
+  const Directional = useNavigation()
+  const onSearch = (value)=>{
     if(value.length===0){
       setDatafind(data)
       setFind(value)
     }else{
       const newDataFind = data.filter((item)=>{
         const itemFind = item.propertypes?item.propertypes.toUpperCase():''.toUpperCase()
+        const itemName = item.report?item.report.toUpperCase():''.toUpperCase()
+        const itemPrice = item.monthlyprice?item.monthlyprice.toUpperCase():''.toUpperCase()
+        const itemBedRoom = item.bedroom?item.bedroom.toUpperCase():''.toUpperCase()
         const valueFind = value.toUpperCase()
-        return itemFind.indexOf(valueFind)>-1
+        return (
+          itemFind.indexOf(valueFind)>-1 
+          || itemName.indexOf(valueFind)>-1
+          || itemPrice.indexOf(valueFind)>-1
+          || itemBedRoom.indexOf(valueFind)>-1
+         )
       })
       setDatafind(newDataFind)
       setFind(value)
@@ -27,9 +35,9 @@ export default function Search() {
   }
   const findObjDetail = (idDetail)=>{
     const objDetail = datafind.find(item=>item.idData === idDetail)
-    navigation.navigate('Details',{objInfo:objDetail})
+    Directional.navigate('Details',{objInfo:objDetail})
   }
-  const getData = async()=> {
+  const TakeData = async()=> {
     await db.transaction((tx)=>{
       tx.executeSql("SELECT * FROM mobieapp",
       [],
@@ -51,22 +59,21 @@ export default function Search() {
     })
 }
 useEffect(() => {
-  getData()
+  TakeData()
 
   return ()=>!isFocused
 }, [isFocused])
   return (
     
-    <View style={styles.container}>
+    <View style={styles.Total}>
         <TextInput
-        style={styles.TINPUT} 
+        style={styles.TextBoxSearch} 
         placeholder='what are you looking for?'
-        onChangeText={(value)=>onfind(value)}
+        onChangeText={(value)=>onSearch(value)}
         value={find}/>
-        <View style={styles.Border}/>
         <View style={{flex:1}}>
           {datafind.length===0?(
-            <Text>No data</Text>
+            <Text>Do not any data to search</Text>
           ):(
             <FlatList
             data={datafind}
@@ -75,35 +82,35 @@ useEffect(() => {
             renderItem={({item})=>(
               <TouchableOpacity
               onPress={()=>findObjDetail(item.idData)}
-              style={styles.Wrap}>
+              style={styles.Footer}>
                 <View style={{flexDirection:'row'}}>
-                <Text>Property Types:</Text>
-                <Text>{item.propertypes}</Text>
+                <Text style={{color:'#fff'}}>Property Types:</Text>
+                <Text style={{color:'#fff'}}>{item.propertypes}</Text>
                 </View>
 
                 <View style={{flexDirection:'row'}}>
-                <Text>BedRooms:</Text>
-                <Text>{item.bedroom}</Text>
+                <Text style={{color:'#fff'}}>BedRooms:</Text>
+                <Text style={{color:'#fff'}}>{item.bedroom}</Text>
                 </View>
 
                 <View style={{flexDirection:'row'}}>
-                <Text>DateAndTime:</Text>
-                <Text>{item.createAt}</Text>
+                <Text style={{color:'#fff'}}>DateAndTime:</Text>
+                <Text style={{color:'#fff'}}>{item.createAt}</Text>
                 </View>
 
                 <View style={{flexDirection:'row'}}>
-                <Text>Monthly Price:</Text>
-                <Text>{item.monthlyprice}</Text>
+                <Text style={{color:'#fff'}}>Monthly Price:</Text>
+                <Text style={{color:'#fff'}}>{item.monthlyprice}</Text>
                 </View>
 
                 <View style={{flexDirection:'row'}}>
-                <Text>Furniture Types:</Text>
-                <Text>{item.furnituretype?item.furnituretype:"none"}</Text>
+                <Text style={{color:'#fff'}}>Furniture Types:</Text>
+                <Text style={{color:'#fff'}}>{item.furnituretype?item.furnituretype:"none"}</Text>
                 </View>
 
                 <View style={{flexDirection:'row'}}>
-                <Text>Reporter:</Text>
-                <Text>{item.report}</Text>
+                <Text style={{color:'#fff'}}>Reporter:</Text>
+                <Text style={{color:'#fff'}}>{item.report}</Text>
                 </View>
 
               </TouchableOpacity>
@@ -116,7 +123,7 @@ useEffect(() => {
 }
 
 const styles = StyleSheet.create({
-  TINPUT:{
+  TextBoxSearch:{
     width: 310,
     height:48,
     borderWidth: 1,
@@ -124,7 +131,7 @@ const styles = StyleSheet.create({
     marginTop:60,
     textAlign:'center'
   },
-  container: {
+  Total: {
     flex: 1,
     backgroundColor: '#fff',
     alignItems: 'center',
@@ -143,11 +150,11 @@ const styles = StyleSheet.create({
     backgroundColor:'#6B6B6B',
     marginTop: 18,
   },
-  Wrap:{
+  Footer:{
     marginBottom:18,
     flexDirection:'column',
     borderRadius:14,
-    backgroundColor:'#fff',
+    backgroundColor:'#333333',
     shadowColor:'#000',
     shadowOpacity:0.7,
     shadowOffset:{width:4,height:8},

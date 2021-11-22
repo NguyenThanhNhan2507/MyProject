@@ -30,9 +30,9 @@ const TimePicker = ({dateAndTime, setInformation, information}) => {
         setTimeAndDateStatus('time')
     }
     return (
-        <View style={style.DateTimeForm}>
-            <Text style={style.TextTime}>{dateAndTime ? dateAndTime:'YYYY-MM-DD HH-MM-SS'}</Text>
-            <View style={style.ViewTime}>
+        <View style={style.Header}>
+            <Text style={style.Border}>{dateAndTime ? dateAndTime:'YYYY-MM-DD HH-MM-SS'}</Text>
+            <View style={style.Footer}>
                 <IconTime name={'calendar-outline'} size={20} color={'black'} onPress={showDate}/>
                 <IconTime name={'timer-outline'} size={20} color={'black'} onPress={showTime}/>
             </View>
@@ -54,7 +54,7 @@ const TimePicker = ({dateAndTime, setInformation, information}) => {
 }
 
 const style=StyleSheet.create({
-    DateTimeForm:{
+    Header:{
         height: 45,
         display:'flex',
         flexDirection:'row',
@@ -66,12 +66,12 @@ const style=StyleSheet.create({
         marginTop: 5,
         
     },
-    TextTime:{
+    Border:{
         width: '67%',
         paddingTop: 8,
         paddingLeft: 9,
     },
-    ViewTime:{
+    Footer:{
         display:'flex',
         flexDirection:'row',
         justifyContent: 'space-around',

@@ -1,5 +1,5 @@
 import React, {useState} from 'react'
-import {  Text,TextInput, View,StyleSheet, ScrollView, TouchableOpacity, Alert, } from 'react-native';
+import {  Text,TextInput, View,StyleSheet, ScrollView, TouchableOpacity, Alert, KeyboardAvoidingView, } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import  IconRoom  from 'react-native-vector-icons/Ionicons';
 import TimePicker from './TimePicker';
@@ -23,8 +23,6 @@ const TextForm = ({navigation, setShow, setStatus}) => {
     const onChange =(input)=>(value)=>{
         setInformation({...information,[input]:value})
     }
-// biến stylefieldcolor
-    const [stylefieldcolor, setstylefieldcolor] =useState('black')
 // biến placeholder
     const placeholder=(form)=> {
         const Placeholder = {
@@ -38,7 +36,7 @@ const TextForm = ({navigation, setShow, setStatus}) => {
         const{properTypes,choiceRoom,dateAndTime,priceOfMonthly,furnitureType,note,report} = valueDB
             await db.transaction((tx)=>{
                 tx.executeSql(
-                    `INSERT INTO mobieapp(
+                    `INSERT OR IGNORE INTO mobieapp(
                         propertypes,
                         bedroom,
                         createAt,
@@ -54,12 +52,20 @@ const TextForm = ({navigation, setShow, setStatus}) => {
                       (tx,result)=>{
                         console.log('insertDB successfully!');
                         console.log(result);
+                        console.log(result.rowsAffected)
+                        if(result.rowsAffected <1){
+                            setStatus('errorDup')
+                            setShow(true)
+                        }else{
+                            setShow(true)
+                            setStatus('')
+                        }
                     }
                 )
             })
     }
 // biến submit
-    const submmit = (giatri) => {
+    const Display = (giatri) => {
         if(!giatri) return
         if(giatri.properTypes ==="" || giatri.report ===""){
             setShow(true)
@@ -69,8 +75,6 @@ const TextForm = ({navigation, setShow, setStatus}) => {
             setStatus('error')
         }
         else{
-            setShow(true)
-            setStatus('')
             insertDB(giatri)
             setInformation({
                 properTypes: '',
@@ -85,20 +89,21 @@ const TextForm = ({navigation, setShow, setStatus}) => {
     }
  // thẻ view
     return (
-    <View style={styles.wrapperForm} >
-        <ScrollView contentContainerStyle={styles.Rolling}>
-            <View style={styles.ViewRoll}>
-        <Text style={styles.SeenView}>Property type</Text>
+    <View style={styles.Header} >
+        <KeyboardAvoidingView>
+        <ScrollView>
+            <View style={styles.ViewField}>
+        <Text style={styles.ViewText}>Property type</Text>
         <TextInput
-        style={styles.textIputs} 
+        style={styles.StyleFields} 
         name="properTypes" 
         value={information.properTypes} 
         onChangeText={onChange('properTypes')}/>
-        <Text style={styles.SeenView}>BedRooms</Text>
+        <Text style={styles.ViewText}>BedRooms</Text>
         <RNPickerSelect
             useNativeAndroidPickerStyle={false}
             placeholder = {placeholder('Bedrooms')}
-            style={stylesForms}
+            style={StyleSelection}
             value={information.choiceRoom}
             onValueChange={(value) => setInformation({...information,choiceRoom:value})}
             items={[
@@ -115,25 +120,25 @@ const TextForm = ({navigation, setShow, setStatus}) => {
                 }}/>)
             }}
         />
-        <Text style={styles.SeenView}>DateTime</Text>
+        <Text style={styles.ViewText}>DateTime</Text>
         <TimePicker 
         timechanges = {timechanges}
         settimechanges = {settimechanges}
         dateAndTime={information.dateAndTime} setInformation={setInformation} information={information}/>
-        <Text style={styles.SeenView}>Monthly Rent Price</Text>
+        <Text style={styles.ViewText}>Monthly Rent Price</Text>
         <TextInput
         keyboardType='numeric'
         placeholder= "Please enter monthly rental price"
-        style={styles.textIputs} 
+        style={styles.StyleFields} 
         name="priceOfMonthly" 
         value={information.priceOfMonthly} 
         onChangeText={onChange('priceOfMonthly')}/>
-        <Text style={styles.SeenView}>Furniture Types</Text>
+        <Text style={styles.ViewText}>Furniture Types</Text>
         <RNPickerSelect
             useNativeAndroidPickerStyle={false}
             value={information.furnitureType}
             placeholder = {placeholder('Furniture Types')}
-            style={stylesForms}
+            style={StyleSelection}
             onValueChange={(value) => setInformation({...information,furnitureType:value})}
             items={[
                 { label: 'Furnished', value: 'Furnished' },
@@ -150,43 +155,43 @@ const TextForm = ({navigation, setShow, setStatus}) => {
                 }}/>)
             }}
         />
-        <Text style={styles.SeenView}>Notes</Text>
+        <Text style={styles.ViewText}>Notes</Text>
         <TextInput
         placeholder="If there is anything please make a note"
-        style={styles.textIputs} 
+        style={styles.StyleFields} 
         name="note" 
         value={information.note} 
         onChangeText={onChange('note')}/>
-        <Text style={styles.SeenView}>Name Of The Reporter</Text>
+        <Text style={styles.ViewText}>Name Of The Reporter</Text>
         <TextInput
         placeholder="Please enter your name!"
-        style={styles.textIputs} 
+        style={styles.StyleFields} 
         name="report" 
         value={information.report} 
         onChangeText={onChange('report')}/>
         </View>
         </ScrollView>
-        <View style={styles.SeenView2}>
+        <View style={styles.ViewButton}>
             <TouchableOpacity 
-            style={styles.PressButtion}
-            onPress={()=>submmit(information)}
+            style={styles.StyleButton}
+            onPress={()=>Display(information)}
             >
-                    <Text style={styles.Text2}>Submit</Text>
+                    <Text style={styles.StyleText}>Submit</Text>
             </TouchableOpacity>
         </View>
+        </KeyboardAvoidingView>
     </View>
     
     )
 }
 // stylesheet
 const styles = StyleSheet.create({
-    wrapperForm:{
-        display: 'flex',
-        flexDirection: 'column',
+    Header:{
+        flex: 1,
         justifyContent: 'center',
         height: 470,
     },
-    textIputs:{
+    StyleFields:{
         height:40, 
         width:280, 
         borderRadius:2,
@@ -196,42 +201,41 @@ const styles = StyleSheet.create({
         borderWidth:1, 
         marginTop:8,
     },
-    SeenView:{
+    ViewText:{
         marginTop: 7,
         
     },
-    Rolling:{
-        flexGrow:1,
-    },
-    ViewRoll:{
-        display:'flex',
+    ViewField:{
+        flex:1,
         padding:16,
         flexDirection:'column',
+        justifyContent:'center',
+        marginLeft:30,
+        marginRight:30
     },
-    SeenView2:{
-        flex: 1,
-        justifyContent: 'center',
+    ViewButton:{
         alignItems: 'center',
         marginTop: 20,
+        marginBottom:40
 
     },
-    PressButtion:{
+    StyleButton:{
         width: 165,
         borderStyle:'solid',
         borderWidth: 1,
         borderRadius:4,
         borderColor: 'black',
-        backgroundColor: '#00bfff',
+        backgroundColor: "#008000",
         height: 52,
-        marginTop: 65
+        marginTop: 20
     },
-    Text2:{
+    StyleText:{
         textAlign: 'center',
         paddingTop: 15,
         fontSize: 15,
     }
 })
-const stylesForms = StyleSheet.create({
+const StyleSelection = StyleSheet.create({
     inputAndroid: {
         fontSize: 14,
         borderColor: 'black',
